@@ -1,10 +1,12 @@
 # about-mobx-state-tree-2
 
-**Внимание!** Чтобы не случилось пересечений, пожалуйста, предварительно согласуйте запросом в issues, какой кусок текста берете в работу.
+[Конспект доклада](https://github.com/comerc/about-mobx-state-tree-2/blob/master/TEXT.md) + [видео](https://www.youtube.com/watch?v=rwqwwn_46kA) + [слайды](http://tree.surge.sh/#1).
 
-Конспект [доклада](https://www.youtube.com/watch?v=rwqwwn_46kA) + [слайды](http://tree.surge.sh/#1)
+Текст на английском получен через автоматические субтитры. 
 
-Текст на английском получен через автоматические субтитры. Предлагаю коммитить в исходный файл TEXT.md, замещая английский текст русским.
+Работа над переводом на [translatedby.com](http://translatedby.com/you/next-generation-state-management/). 
+
+Пожалуйста, помогайте!
 
 ## Зачем?
 
