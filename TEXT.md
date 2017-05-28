@@ -261,4 +261,274 @@ so if you make some mistake in your Jason you get this nice fine grained our maj
 
 ![](images/37.png)
 
-but what is really cool and what still blows my mind is that with this type system which is introduced by this library we can also do a design time type checking so this is a screenshot of a video cards and my type scripts a test project and it's in first what I do wrong how I use those moogles wrong now this might at first seem a pretty normal thing to do for type scripts but the cool thing is these types are not defined with type script these types are defined to public safety of the coccidia cell so type script is actually powerful enough nowadays to define a type system and type script and then do checks on it and it's it's pretty mind-blowing you have maybe to look at data fit into it to see how amazing it is probably flock and do it is as well I'm just not enough into flow but if somebody wants to make a pull request to add flow toppings it will be perfect and this type checking is based on the work of Gil Conte and he wrote a library type combinators and much Amundson see he put it into the mobile city library so those guys are actually responsible for a large part of the library as pretty powerful test collections refinement unions literals if your recursive types can even have types across different files with circular dependencies so what you've seen so far is that we could combine quite a set of features from both worlds so we have sheep searchingly shared snapshots we have a tree structure we can easily hydrate and dehydrate we can go look at our actions and our actions themselves they are pretty set forward to right we just want to fly some local data and we have the static and runtime type checking but there's more because we fixed a tree is based on the leaks it has this notion of fine grained observability where every property in your system is observable so that means that Republic's a tree you can simply subscribe to the bets stream of your data so here are all the batches happening in my application so snapshots I cannot exchange with my server they're way too big for that but I can exchange snapshots with the backends to distribute changes so I can just change something and knew Jason bets gets produced and I can reapply the spatulas so I can also work with Jason patches out of the box let's talk a bit more about actions actions I said they're pretty straightforward but you have some special properties first of all you cannot modify a state tree without using an action it will just throw an exception so if you try to modify something directly by default you get this exception you're down there you're trying to modify your state without using an action and this is important because if you are forced to use actions to multi state then we can benefit from replayability so I can for example go to the books and add some book to my part and if I look here then I see that action also I actually can also be recorded and I can go to the card and you can see that I can just replay this action on my state so I can replay and record snapshots I can replace patches I can replay actions however we don't produce any action in description anywhere we don't dispatch reactions now mo backs a tree it's in first you just invoke a method and we produce action description for you and you can even intercept that if you want but that makes it super straightforward to use actions and still be able to replay those figs and a nice use case for replaying actions one is having different clients working on same data and synchronizing on actions but the other one is where you have this complex tree of data and user starts to edit this data in a wizard and usually that gets complicated if there's a lot of pools of data potential to be edited but that's simple now as well because what you can do is you can just take some part of the tree and clone it and the cosmic state tree is a fully recursive concept so every node in our tree is a state tree in itself and every operation we can invoke on the root we can invoke on any nodes we can just start listening on actions in a specific sub tree so we then clone a book which is simply taking the type and taking it snapshots to produce a new instance so we can clone a book and we can start an action recorder which just stores all the actions being involved and then he also starts modifying the z10 wizard and in the end if he is ok with it we can just replay those actions onto the original object and we have this atomic commit of all the changes he made so with that we have fine grained updates we have protection of data and we have replayable transactional data around the des Vosges guy in Lord of the Rings movies he wants set def is a gift to men I'm not sure whether I entirely agree on that statement but there are some use to it as you will see so let's think a very bit about references in JavaScript so here's a small function that prints the price of a book the only nasty thing is it prints it one second for now now what assumptions can we make on the price that gets printed well turns out that largely depends on which model you use what does a reference really presents what does the book reference as argument what does it represent it's like asking the questions is this four times the same tree or are these four different trees it's kind of conceptual and depends on semantics so if you use musical data than a reference refers to a concept and the concept might change over time but you refer to the same concept the Orient of immutable data you always have a reference to a state of a concept somewhere in history or in current but to the very specific state so if this book is immutable then we know for sure that one second from now that price won't have changed the price of the book we passed to that function with mutable data well the price might have changed the price your prints might be different from the one it was when we passed in that book to the function but if the immutable data the price might be still that book with ISBN one two three might have received an update but that's in a different state tree and with mutable models we know for sure that it might have changed but at least you will be printing the latest price and what semantics you need depends on what feature you are building and if I were a consumer of this book shop I know what semantics I would need that is printer one which is the cheapest but if mopix a tree you can choose between semantics so you can give either a reference to this book in the state tree which in which case you'll refer to the concept or you can pass a reference to its snapshot and which schedule refer to its state but you can can get it make it even a seer so suppose we involve this print function and right after that we remove this book from our store what will be printed for the immutable case it doesn't matter for the mutable case at your prints whatever happens to be the last price known in system but if you using mobile satori something else will happen you will get an exception you will get an exception telling you how you're using some data you're reading from some data which is not even in your state anymore so probably the data you are using is coming from some still reference so maybe you shouldn't be using this you might be thinking isn't that the kind of rule but well it's like if you try to hang up a swing and a tree then you better make sure that that's swing is attached to a living branch go to a dead one because otherwise this picture ends very badly so one more back satyr you provide you is not only protection against unintended modification it even gets you protection against accidentally still reads from data you were not supposed to be used to be used anymore so that is why I said sometimes it's a feature when you flick from the wrong tree and you die based on that finally so far we have just been talking about trees because trees are easy to traverse etc however not all models of applications fit nicely to trees even our bookshop doesn't fit nicely into our tree because our card entries refer to books however we cannot make a real reference here because then we would introduce a graph we would lose our tree semantics so we have to normalize our data do we and we mobic say tree we have the type information of the shape of the tree you defined so we can just tell the system hey this book in the court entry that's not a book itself it's just a reference to a book and after that you can just interact with record entry you can assign real books to it you can read from that cart entry and you get a real book back you can access its data but behind the scenes the normalization is done for you so even though the book entitled book contains a real book if you print it snapshots you will see that it's in the background still normalized it does the reference management for you so of that we have a tree with which you can interact as if it's a graph we can have dev tools as I showed you in the demo and we can choose which semantics we need for our references either we can refer to a concept to an identity or we can refer to a concept in a specific state whatever we need but there's something more so this is the radix to do MVC application I'm pretty sure you all once run this thing and these are the dev tools we're so familiar with so we can play back and forward in time you've all seen this except there's something weird with this Redux to do MVC application I remove the reducer file and after that okay it's a new file and in that I put a more big state tree model of a to-do list but the rest of the application is the same and it still works it's it has redux connect components it has actual dispatching it just doesn't have any reducers anymore it has a stay tree but because a state tree can provide everything we need snapshots applying snapshots action descriptions replaying actions we can interchange those two paradigms that one so this is what our to do store now basically look like pretty straightforward we define the shape and we define some actions on top of it and you see the direction still has a weird uppercase name but that's because that's the name of the action that gets dispatched so the names have to match but they're basically proof proves that we can have a meatball tree and all the features we know from the immutable world so we can combine the two opposing paradigms so that's what superb exits a tree tries to do and you can already use it the there are actually some people using it in prediction already it's not 100 yes because that talks are not completely to date but hey versus better so start use it play with it and last word of advice hug some tree today thanks
+but what is really cool and what still blows my mind is that with this type system which is introduced by this library we can also do a design time type checking so this is a screenshot of a video cards and my type scripts a test project and it's in first what I do wrong how I use those moogles wrong now this might at first seem a pretty normal thing to do for type scripts but the cool thing is these types are not defined with type script these types are defined to public safety of the coccidia cell so type script is actually powerful enough nowadays to define a type system and type script and then do checks on it and it's it's pretty mind-blowing you have maybe to look at data fit into it to see how amazing it is probably flock and do it is as well I'm just not enough into flow but if somebody wants to make a pull request to add flow toppings it will be perfect 
+
+> Type Checking
+
+> TComb inspired: collections, refinements, unions, literals, recursive types
+
+and this type checking is based on the work of Gil Conte and he wrote a library type combinators and much Amundson see he put it into the mobile city library so those guys are actually responsible for a large part of the library as pretty powerful test collections refinement unions literals if your recursive types can even have types across different files with circular dependencies 
+
+![](images/39.png)
+
+so what you've seen so far is that we could combine quite a set of features from both worlds so we have sheep searchingly shared snapshots we have a tree structure we can easily hydrate and dehydrate we can go look at our actions and our actions themselves they are pretty set forward to right we just want to fly some local data and we have the static and runtime type checking 
+
+> Patches Demo
+
+but there's more because we fixed a tree is based on the leaks it has this notion of fine grained observability where every property in your system is observable so that means that Republic's a tree you can simply subscribe to the bets stream of your data so here are all the batches happening in my application so snapshots I cannot exchange with my server they're way too big for that but I can exchange snapshots with the backends to distribute changes so I can just change something and knew Jason bets gets produced and I can reapply the spatulas so I can also work with Jason patches out of the box 
+
+> Actions
+
+- Instances can only be modified through actions
+- Actions can only modify own subtree
+
+```javascript
+const Book = types.model({
+    title: types.string,
+    price: types.number
+}, {
+    setPrice(newPrice) {
+        this.price = newPrice
+    }
+})
+```
+
+let's talk a bit more about actions actions I said they're pretty straightforward but you have some special properties first of all you cannot modify a state tree without using an action 
+
+```javascript
+store.books[0].title = "I hate trees!"
+```
+
+```javascript
+Error: Cannot modify 'Book@/books/0',
+the object is protected and can only be modified by using an action.
+```
+
+it will just throw an exception so if you try to modify something directly by default you get this exception you're down there you're trying to modify your state without using an action and this is important because if you are forced to use actions to multi state then we can benefit from replayability 
+
+> Demo
+
+so I can for example go to the books and add some book to my part and if I look here then I see that action also I actually can also be recorded and I can go to the card and you can see that I can just replay this action on my state so I can replay and record snapshots I can replace patches I can replay actions 
+
+- Replayable
+- Method invocation *produced* action description
+- Middleware support
+
+however we don't produce any action in description anywhere we don't dispatch reactions now mo backs a tree it's in first you just invoke a method and we produce action description for you and you can even intercept that if you want 
+
+> Use Case: Modify Complex Data In Wizard
+
+but that makes it super straightforward to use actions and still be able to replay those figs and a nice use case for replaying actions one is having different clients working on same data and synchronizing on actions but the other one is where you have this complex tree of data and user starts to edit this data in a wizard and usually that gets complicated if there's a lot of pools of data potential to be edited 
+
+```javascript
+import { clone, recordActions } from "mobx-state-tree"
+const bookCopy = clone(store.books[0])
+```
+
+but that's simple now as well because what you can do is you can just take some part of the tree and clone it and the cosmic state tree is a fully recursive concept so every node in our tree is a state tree in itself and every operation we can invoke on the root we can invoke on any nodes we can just start listening on actions in a specific sub tree 
+
+```javascript
+function clone(tree) {
+    return getType(tree).create(getSnapshot(tree))
+}
+```
+
+so we then clone a book which is simply taking the type and taking it snapshots to produce a new instance 
+
+```javascript
+import { clone, recordActions } from "mobx-state-tree"
+const bookCopy = clone(store)
+const recorder = recordActions(bookCopy)
+```
+
+so we can clone a book and we can start an action recorder which just stores all the actions being involved 
+
+```
+...user modifies the book in a wizard
+And upon commit...
+```
+
+and then he also starts modifying the z10 wizard 
+
+```javascript
+recorder.replay(store.books[0])
+```
+
+and in the end if he is ok with it we can just replay those actions onto the original object and we have this atomic commit of all the changes he made 
+
+![](images/49.png)
+
+so with that we have fine grained updates we have protection of data and we have replayable transactional data 
+
+![](images/50.png)
+
+around the des Vosges guy in Lord of the Rings movies he wants set def is a gift to men I'm not sure whether I entirely agree on that statement but there are some use to it as you will see 
+
+> References
+
+```javascript
+function printPrice(book: Book) {
+    setTimeout(
+        () => console.log(book.price),
+        1000
+    )
+}
+printPrice(store.books.get("ISBN-123"))
+```
+
+so let's think a very bit about references in JavaScript so here's a small function that prints the price of a book the only nasty thing is it prints it one second for now now what assumptions can we make on the price that gets printed well turns out that largely depends on which model you use what does a reference really presents what does the book reference as argument what does it represent 
+
+![](images/52.png)
+
+it's like asking the questions is this four times the same tree or are these four different trees it's kind of conceptual 
+
+![](images/53.png)
+
+and depends on semantics so if you use musical data than a reference refers to a concept and the concept might change over time but you refer to the same concept the Orient of immutable data you always have a reference to a state of a concept somewhere in history or in current but to the very specific state 
+
+```javascript
+function printPrice(book: Book) {
+    setTimeout(
+        () => console.log(book.price),
+        1000
+    )
+}
+
+printPrice(store.books.get("ISBN-123"))
+```
+
+**Immutable Trees**
+- price won't have changes
+- price might be stale
+
+**Mutable Model Graphs**
+- price might have changed
+- price will not be stale
+
+so if this book is immutable then we know for sure that one second from now that price won't have changed the price of the book we passed to that function with mutable data well the price might have changed the price your prints might be different from the one it was when we passed in that book to the function but if the immutable data the price might be still that book with ISBN one two three might have received an update but that's in a different state tree and with mutable models we know for sure that it might have changed but at least you will be printing the latest price and what semantics you need depends on what feature you are building and if I were a consumer of this book shop I know what semantics I would need that is printer one which is the cheapest 
+
+```javascript
+function printPrice(book: Book) {
+    setTimeout(
+        () => console.log(book.price),
+        1000
+    )
+}
+```
+
+```javascript
+printPrice(store.books.get("ISBN-123"))
+```
+
+```javascript
+printPrice(getSnapshot(store.books.get("ISBN-123")))
+```
+
+but if mopix a tree you can choose between semantics so you can give either a reference to this book in the state tree which in which case you'll refer to the concept or you can pass a reference to its snapshot and which schedule refer to its state 
+
+```javascript
+printPrice(store.books.get("ISBN-123"))
+store.removeBook("ISBN-123")
+// what will be printed?
+```
+
+```
+Error: This object has died and is no longer part of a state tree. It cannot be used anymore.
+```
+
+but you can can get it make it even a seer so suppose we involve this print function and right after that we remove this book from our store what will be printed for the immutable case it doesn't matter for the mutable case at your prints whatever happens to be the last price known in system but if you using mobile satori something else will happen you will get an exception you will get an exception telling you how you're using some data you're reading from some data which is not even in your state anymore so probably the data you are using is coming from some still reference so maybe you shouldn't be using this 
+
+![](images/57.png)
+
+you might be thinking isn't that the kind of rule but well it's like if you try to hang up a swing and a tree then you better make sure that that's swing is attached to a living branch go to a dead one because otherwise this picture ends very badly 
+
+> mobx-state-tree
+
+- Protection against uncoordinated modifications 
+- Protection against stale reads
+
+so one more back satyr you provide you is not only protection against unintended modification it even gets you protection against accidentally still reads from data you were not supposed to be used to be used anymore 
+
+![](images/06.png)
+
+so that is why I said sometimes it's a feature when you flick from the wrong tree and you die based on that 
+
+> Graphs
+
+```
+bookStore
+   - books
+       - book A
+       - book B
+   - cart
+       - entry 1
+           - book A ?
+           - quantity
+       - entry 2
+           - book B ?
+           - quantity
+```          
+
+finally so far we have just been talking about trees because trees are easy to traverse etc however not all models of applications fit nicely to trees even our bookshop doesn't fit nicely into our tree because our card entries refer to books however we cannot make a real reference here because then we would introduce a graph we would lose our tree semantics so we have to normalize our data 
+
+```javascript
+const CartEntry = types.model({
+    amount: types.number,
+    book: types.reference(Book)
+})
+
+cartEntry.book = bookStore.books[0]
+
+console.log(bookEntry.book.title) // OK
+
+console.dir(getSnapshot(bookEntry))
+```
+
+do we and we mobic say tree we have the type information of the shape of the tree you defined so we can just tell the system hey this book in the court entry that's not a book itself it's just a reference to a book and after that you can just interact with record entry you can assign real books to it you can read from that cart entry and you get a real book back you can access its data but behind the scenes the normalization is done for you so even though the book entitled book contains a real book 
+
+```javascript
+{
+    amount: 3,
+    book: "24"
+}
+```
+
+if you print it snapshots you will see that it's in the background still normalized it does the reference management for you 
+
+![](images/62.png)
+
+so of that we have a tree with which you can interact as if it's a graph we can have dev tools as I showed you in the demo and we can choose which semantics we need for our references either we can refer to a concept to an identity or we can refer to a concept in a specific state whatever we need but there's something more 
+
+> [Demo](https://github.com/mobxjs/mobx-state-tree/tree/master/examples/redux-todomvc)
+
+so this is the radix to do MVC application I'm pretty sure you all once run this thing and these are the dev tools we're so familiar with so we can play back and forward in time you've all seen this except there's something weird with this Redux to do MVC application I remove the reducer file and after that okay it's a new file and in that I put a more big state tree model of a to-do list but the rest of the application is the same and it still works it's it has redux connect components it has actual dispatching it just doesn't have any reducers anymore it has a stay tree but because a state tree can provide everything we need snapshots applying snapshots action descriptions replaying actions we can interchange those two paradigms that one 
+
+```javascript
+import { types } from 'mobx-state-tree'
+const Todo = types.model({
+    text: 'Learn Redux',
+    completed: false,
+    id: 0
+})
+const TodoStore = types.model({
+    todos: types.array(Todo),
+    findTodoById: function (id) {
+      return this.todos.find(todo => todo.id === id)
+    }
+}, {
+    DELETE_TODO({ id }) {
+      this.todos.remove(this.findTodoById(id))
+    }
+    // .. and more
+})
+```
+
+so this is what our to do store now basically look like pretty straightforward we define the shape and we define some actions on top of it and you see the direction still has a weird uppercase name but that's because that's the name of the action that gets dispatched so the names have to match but they're basically proof proves that we can have a meatball tree and all the features we know from the immutable world 
+
+![](images/66.png)
+
+so we can combine the two opposing paradigms so that's what superb exits a tree tries to do and you can already use it the there are actually some people using it in prediction already it's not 100 yes because that talks are not completely to date but hey versus better 
+
+![](images/67.png)
+
+so [start use](https://github.com/mobxjs/mobx-state-tree) it play with it and last word of advice hug some tree today thanks
